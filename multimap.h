@@ -1,13 +1,14 @@
-#ifndef MAP_H_
-#define MAP_H_
+#ifndef Multimap_H_
+#define Multimap_H_
 
 #include <iostream>
 #include <memory>
 #include <string>
 #include <utility>
+#include <vector>
 
 template <typename K, typename V>
-class Map {
+class Multimap {
  public:
   // Return size of tree
   unsigned int Size();
@@ -30,7 +31,7 @@ class Map {
   enum Color { RED, BLACK };
   struct Node{
     K key;
-    V value;
+    std::vector<V> values;
     bool color;
     std::unique_ptr<Node> left;
     std::unique_ptr<Node> right;
@@ -59,12 +60,12 @@ class Map {
 };
 
 template <typename K, typename V>
-unsigned int Map<K, V>::Size() {
+unsigned int Multimap<K, V>::Size() {
   return cur_size;
 }
 
 template <typename K, typename V>
-typename Map<K, V>::Node* Map<K, V>::Get(Node *n, const K &key) {
+typename Multimap<K, V>::Node* Multimap<K, V>::Get(Node *n, const K &key) {
   while (n) {
     if (key == n->key)
       return n;
@@ -78,32 +79,32 @@ typename Map<K, V>::Node* Map<K, V>::Get(Node *n, const K &key) {
 }
 
 template <typename K, typename V>
-const V& Map<K, V>::Get(const K &key) {
+const V& Multimap<K, V>::Get(const K &key) {
   Node *n = Get(root.get(), key);
   if (!n)
     throw std::runtime_error("Error: cannot find key");
-  return n->value;
+  return n->values[0];
 }
 
 template <typename K, typename V>
-bool Map<K, V>::Contains(const K &key) {
+bool Multimap<K, V>::Contains(const K &key) {
   return Get(root.get(), key) != nullptr;
 }
 
 template <typename K, typename V>
-const K& Map<K, V>::Max(void) {
+const K& Multimap<K, V>::Max(void) {
   Node *n = root.get();
   while (n->right) n = n->right.get();
   return n->key;
 }
 
 template <typename K, typename V>
-const K& Map<K, V>::Min(void) {
+const K& Multimap<K, V>::Min(void) {
   return Min(root.get())->key;
 }
 
 template <typename K, typename V>
-typename Map<K, V>::Node* Map<K, V>::Min(Node *n) {
+typename Multimap<K, V>::Node* Multimap<K, V>::Min(Node *n) {
   if (n->left)
     return Min(n->left.get());
   else
@@ -111,20 +112,20 @@ typename Map<K, V>::Node* Map<K, V>::Min(Node *n) {
 }
 
 template <typename K, typename V>
-bool Map<K, V>::IsRed(Node *n) {
+bool Multimap<K, V>::IsRed(Node *n) {
   if (!n) return false;
   return (n->color == RED);
 }
 
 template <typename K, typename V>
-void Map<K, V>::FlipColors(Node *n) {
+void Multimap<K, V>::FlipColors(Node *n) {
   n->color = !n->color;
   n->left->color = !n->left->color;
   n->right->color = !n->right->color;
 }
 
 template <typename K, typename V>
-void Map<K, V>::RotateRight(std::unique_ptr<Node> &prt) {
+void Multimap<K, V>::RotateRight(std::unique_ptr<Node> &prt) {
   std::unique_ptr<Node> chd = std::move(prt->left);
   prt->left = std::move(chd->right);
   chd->color = prt->color;
@@ -134,7 +135,7 @@ void Map<K, V>::RotateRight(std::unique_ptr<Node> &prt) {
 }
 
 template <typename K, typename V>
-void Map<K, V>::RotateLeft(std::unique_ptr<Node> &prt) {
+void Multimap<K, V>::RotateLeft(std::unique_ptr<Node> &prt) {
   std::unique_ptr<Node> chd = std::move(prt->right);
   prt->right = std::move(chd->left);
   chd->color = prt->color;
@@ -144,7 +145,7 @@ void Map<K, V>::RotateLeft(std::unique_ptr<Node> &prt) {
 }
 
 template <typename K, typename V>
-void Map<K, V>::FixUp(std::unique_ptr<Node> &n) {
+void Multimap<K, V>::FixUp(std::unique_ptr<Node> &n) {
   // Rotate left if there is a right-leaning red node
   if (IsRed(n->right.get()) && !IsRed(n->left.get()))
     RotateLeft(n);
@@ -157,7 +158,7 @@ void Map<K, V>::FixUp(std::unique_ptr<Node> &n) {
 }
 
 template <typename K, typename V>
-void Map<K, V>::MoveRedRight(std::unique_ptr<Node> &n) {
+void Multimap<K, V>::MoveRedRight(std::unique_ptr<Node> &n) {
   FlipColors(n.get());
   if (IsRed(n->left->left.get())) {
     RotateRight(n);
@@ -166,7 +167,7 @@ void Map<K, V>::MoveRedRight(std::unique_ptr<Node> &n) {
 }
 
 template <typename K, typename V>
-void Map<K, V>::MoveRedLeft(std::unique_ptr<Node> &n) {
+void Multimap<K, V>::MoveRedLeft(std::unique_ptr<Node> &n) {
   FlipColors(n.get());
   if (IsRed(n->right->left.get())) {
     RotateRight(n->right);
@@ -176,7 +177,7 @@ void Map<K, V>::MoveRedLeft(std::unique_ptr<Node> &n) {
 }
 
 template <typename K, typename V>
-void Map<K, V>::DeleteMin(std::unique_ptr<Node> &n) {
+void Multimap<K, V>::DeleteMin(std::unique_ptr<Node> &n) {
   // No left child, min is 'n'
   if (!n->left) {
     // Remove n
@@ -193,7 +194,7 @@ void Map<K, V>::DeleteMin(std::unique_ptr<Node> &n) {
 }
 
 template <typename K, typename V>
-void Map<K, V>::Remove(const K &key) {
+void Multimap<K, V>::Remove(const K &key) {
   if (!Contains(key))
     return;
   Remove(root, key);
@@ -203,7 +204,7 @@ void Map<K, V>::Remove(const K &key) {
 }
 
 template <typename K, typename V>
-void Map<K, V>::Remove(std::unique_ptr<Node> &n, const K &key) {
+void Multimap<K, V>::Remove(std::unique_ptr<Node> &n, const K &key) {
   // Key not found
   if (!n) return;
 
@@ -217,8 +218,13 @@ void Map<K, V>::Remove(std::unique_ptr<Node> &n, const K &key) {
 
     if (key == n->key && !n->right) {
       // Remove n
-      n = nullptr;
-      return;
+      if(n->values.size() <= 1) {
+        n = nullptr;
+        return;
+      }
+      else {
+        n->values.erase(0);
+      }
     }
 
     if (!IsRed(n->right.get()) && !IsRed(n->right->left.get()))
@@ -241,39 +247,37 @@ void Map<K, V>::Remove(std::unique_ptr<Node> &n, const K &key) {
 }
 
 template <typename K, typename V>
-void Map<K, V>::Insert(const K &key, const V &value) {
+void Multimap<K, V>::Insert(const K &key, const V &value) {
   Insert(root, key, value);
   cur_size++;
   root->color = BLACK;
 }
 
 template <typename K, typename V>
-void Map<K, V>::Insert(std::unique_ptr<Node> &n,
-                       const K &key, const V &value) {
+void Multimap<K, V>::Insert(std::unique_ptr<Node> &n, const K &key, const V &value) {
   if (!n)
-    n = std::unique_ptr<Node>(new Node{key, value, RED});
+    n = std::unique_ptr<Node>(new Node{key, n->values.insert(0, value), RED});
   else if (key < n->key)
     Insert(n->left, key, value);
   else if (key > n->key)
     Insert(n->right, key, value);
   else
-    throw std::runtime_error("Key already inserted");
-
+    n->values.insert(values.size() - 1, value);
   FixUp(n);
 }
 
 template <typename K, typename V>
-void Map<K, V>::Print() {
+void Multimap<K, V>::Print() {
   Print(root.get());
   std::cout << std::endl;
 }
 
 template <typename K, typename V>
-void Map<K, V>::Print(Node *n) {
+void Multimap<K, V>::Print(Node *n) {
   if (!n) return;
   Print(n->left.get());
   std::cout << "<" << n->key << "," << n->value << "> ";
   Print(n->right.get());
 }
 
-#endif  // MAP_H_
+#endif  // Multimap_H_
