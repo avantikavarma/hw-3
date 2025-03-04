@@ -256,13 +256,13 @@ void Multimap<K, V>::Insert(const K &key, const V &value) {
 template <typename K, typename V>
 void Multimap<K, V>::Insert(std::unique_ptr<Node> &n, const K &key, const V &value) {
   if (!n)
-    n = std::unique_ptr<Node>(new Node{key, n->values.insert(0, value), RED});
+    n = std::unique_ptr<Node>(new Node{key, std:vector<V>{value}, RED});
   else if (key < n->key)
     Insert(n->left, key, value);
   else if (key > n->key)
     Insert(n->right, key, value);
   else
-    n->values.insert(values.size() - 1, value);
+    n->values.push_back(value);
   FixUp(n);
 }
 
