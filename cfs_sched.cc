@@ -42,9 +42,13 @@ void CFS_Scheduler::Scheduler(){
             }
         }
 
+        if(timeline.Size() == 0){
+            std::cout << tick << " [0]: _";
+        }
+
         if(timeline.Size() > 0){
             auto current_task = timeline.Get(timeline.Min());
-            std::cout << tick <<"[" << timeline.Size() << "]:" << current_task.identifier;
+            std::cout << tick <<" [" << timeline.Size() << "]: " << current_task.identifier;
             current_task.duration--;
 
             if(current_task.duration == 0){
@@ -52,8 +56,7 @@ void CFS_Scheduler::Scheduler(){
                 timeline.Remove(timeline.Min());
             } else {
                 current_task.vruntime++;
-                //timeline.Remove(timeline.Min());
-                timeline.Insert(current_task.vruntime, current_task);
+                //timeline.Insert(current_task.vruntime, current_task);
             }
             min_vruntime = current_task.vruntime;
         }
