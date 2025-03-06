@@ -218,12 +218,15 @@ void Multimap<K, V>::Remove(std::unique_ptr<Node> &n, const K &key) {
 
     if (key == n->key && !n->right) {
       // Remove n
-      if(n->values.size() <= 1) {
+      if (n->values.size() <= 1) {
         n = nullptr;
         return;
-      }
-      else {
-        n->values.erase(0);
+      } else {
+        // Manually remove the first element by shifting
+        for (size_t i = 1; i < n->values.size(); ++i) {
+          n->values[i - 1] = std::move(n->values[i]);
+        }
+        n->values.pop_back();  // Remove the last element
       }
     }
 
@@ -235,7 +238,7 @@ void Multimap<K, V>::Remove(std::unique_ptr<Node> &n, const K &key) {
       Node *n_min = Min(n->right.get());
       // Copy content from min node
       n->key = n_min->key;
-      n->value = n_min->value;
+      n->values = n_min->values;
       // Delete min node recursively
       DeleteMin(n->right);
     } else {
@@ -245,6 +248,7 @@ void Multimap<K, V>::Remove(std::unique_ptr<Node> &n, const K &key) {
 
   FixUp(n);
 }
+
 
 template <typename K, typename V>
 void Multimap<K, V>::Insert(const K &key, const V &value) {
