@@ -39,22 +39,59 @@ int main(int argc, char* argv[]){
         unsigned int duration_time;
 
         task >> identifier >> start_time >> duration_time;
-        Task t = {identifier, duration_time, duration_time};
+        Task t = {identifier, duration_time, duration_time, 0};
         task_map.Insert(start_time, t);
     }
     
-// need smth for timeline
+
+auto Timer (Multimap task_map) { 
     unsigned int tick = 0;
-    unsigned int min_vruntime = 0;
+    unsigned int global_vruntime = 0;
+    std::vector<Task> timeline;
     while(task_map.Size() != 0){
         auto current_task = task_map.Get(task_map.Min()); // how to find other tasks with same key value??
-        if(current_task.key == tick){
-            unsigned int current_runtime = min_vruntime;
+        timeline.push_back(current_task);
+        task_map.Remove(task_map.Min());
+        current_task.vruntime = global_vruntime;
+        tick++;
+        current_task.vruntime++;
+        if (current_task.vruntime > global_vruntime) {
+            Timer(task_map);
         }
 
+    }
+}
+
+   
+// need smth for timeline
+    unsigned int tick = 0;
+    unsigned int global_vruntime = 0;
+    std::vector<Task> timeline;
+    while(task_map.Size() != 0){
+        auto current_task = task_map.Get(task_map.Min()); // how to find other tasks with same key value??
+        timeline.push_back(current_task);
+        task_map.Remove(task_map.Min());
+        current_task.vruntime = global_vruntime;
+        tick++;
+        current_task.vruntime++;
+        if (current_task.vruntime > global_vruntime) {
+            timeline.push_back() // push next task onto the timeline
+
+        }
+
+
+
+
+
+
+
+ }
+
+
+
+        
         
     }
 
 }
-
 
