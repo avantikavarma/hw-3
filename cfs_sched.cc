@@ -28,7 +28,7 @@ private:
 };
 
 void CFS_Scheduler::Scheduler() {
-    while (tasks.size() != 0 || !timeline.Size() != 0) {
+    while (tasks.size() != 0 || timeline.Size() != 0) {
         // Add tasks to timeline based on start time
         for (auto task = tasks.begin(); task != tasks.end(); ) {
             auto start_time = task->start_time;
@@ -59,9 +59,8 @@ void CFS_Scheduler::Scheduler() {
             } else {
                 // Task is still running, increment vruntime and reinsert it into the timeline
                 current_task.vruntime++;
+                timeline.Remove(timeline.Min());  // Remove the task before reinserting
                 timeline.Insert(current_task.vruntime, current_task);
-                //timeline.Remove(timeline.Min());
-
             }
             min_vruntime = current_task.vruntime;  // Update the min_vruntime for the next task
         }
