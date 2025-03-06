@@ -1,0 +1,44 @@
+==180709== Memcheck, a memory error detector
+==180709== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==180709== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==180709== Command: ./cfs_sched tasks3.dat
+==180709== 
+==180709== Invalid read of size 8
+==180709==    at 0x10D2C6: std::__uniq_ptr_impl<Multimap<int, Task>::Node, std::default_delete<Multimap<int, Task>::Node> >::_M_ptr() const (in /home/atvarma/cfs_sched)
+==180709==    by 0x10C28F: std::unique_ptr<Multimap<int, Task>::Node, std::default_delete<Multimap<int, Task>::Node> >::get() const (in /home/atvarma/cfs_sched)
+==180709==    by 0x10C68F: Multimap<int, Task>::Remove(std::unique_ptr<Multimap<int, Task>::Node, std::default_delete<Multimap<int, Task>::Node> >&, int const&) (in /home/atvarma/cfs_sched)
+==180709==    by 0x10B6E0: Multimap<int, Task>::Remove(int const&) (in /home/atvarma/cfs_sched)
+==180709==    by 0x10A758: CFS_Scheduler::Scheduler() (in /home/atvarma/cfs_sched)
+==180709==    by 0x10AA7B: main (in /home/atvarma/cfs_sched)
+==180709==  Address 0x28 is not stack'd, malloc'd or (recently) free'd
+==180709== 
+==180709== 
+==180709== Process terminating with default action of signal 11 (SIGSEGV): dumping core
+==180709==  Access not within mapped region at address 0x28
+==180709==    at 0x10D2C6: std::__uniq_ptr_impl<Multimap<int, Task>::Node, std::default_delete<Multimap<int, Task>::Node> >::_M_ptr() const (in /home/atvarma/cfs_sched)
+==180709==    by 0x10C28F: std::unique_ptr<Multimap<int, Task>::Node, std::default_delete<Multimap<int, Task>::Node> >::get() const (in /home/atvarma/cfs_sched)
+==180709==    by 0x10C68F: Multimap<int, Task>::Remove(std::unique_ptr<Multimap<int, Task>::Node, std::default_delete<Multimap<int, Task>::Node> >&, int const&) (in /home/atvarma/cfs_sched)
+==180709==    by 0x10B6E0: Multimap<int, Task>::Remove(int const&) (in /home/atvarma/cfs_sched)
+==180709==    by 0x10A758: CFS_Scheduler::Scheduler() (in /home/atvarma/cfs_sched)
+==180709==    by 0x10AA7B: main (in /home/atvarma/cfs_sched)
+==180709==  If you believe this happened as a result of a stack
+==180709==  overflow in your program's main thread (unlikely but
+==180709==  possible), you can try to increase the size of the
+==180709==  main thread stack using the --main-stacksize= flag.
+==180709==  The main thread stack size used in this run was 8388608.
+==180709== 
+==180709== HEAP SUMMARY:
+==180709==     in use at exit: 82,624 bytes in 8 blocks
+==180709==   total heap usage: 17 allocs, 9 frees, 82,912 bytes allocated
+==180709== 
+==180709== LEAK SUMMARY:
+==180709==    definitely lost: 0 bytes in 0 blocks
+==180709==    indirectly lost: 0 bytes in 0 blocks
+==180709==      possibly lost: 0 bytes in 0 blocks
+==180709==    still reachable: 82,624 bytes in 8 blocks
+==180709==         suppressed: 0 bytes in 0 blocks
+==180709== Rerun with --leak-check=full to see details of leaked memory
+==180709== 
+==180709== For lists of detected and suppressed errors, rerun with: -s
+==180709== ERROR SUMMARY: 1 errors from 1 contexts (suppressed: 0 from 0)
+Segmentation fault (core dumped)
