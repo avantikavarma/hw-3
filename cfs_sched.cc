@@ -16,6 +16,10 @@ class CFS_Scheduler {
     public:
     void Scheduler();
 
+    CFS_Scheduler(std::vector<Task> input){
+        tasks = input;
+    }
+
     private:
     unsigned int tick = 0;
     unsigned int min_vruntime = 0;
@@ -27,11 +31,14 @@ class CFS_Scheduler {
 
 void CFS_Scheduler::Scheduler(){
     while(!tasks.empty()){
-        for(auto task : tasks){
-            if(task.start_time == tick){
-                task.vruntime = min_vruntime;
-                timeline.Insert(task.vruntime, task);
-                //somehow erase task from vector
+        for(auto task = tasks.begin(); task != tasks.end();){
+            auto start_time = task->start_time;
+            if(start_time == tick){
+                task->vruntime = min_vruntime;
+                timeline.Insert(task->vruntime, *task); 
+                task = tasks.erase(task);
+            } else {
+                task++;
             }
         }
 
@@ -57,14 +64,14 @@ void CFS_Scheduler::Scheduler(){
 
 int main(int argc, char* argv[]){
     if(argc != 2){
-        std::cout << "Usage: ./cfs_sched <task_file.dat>" << std::endl;
+        std::cerr << "Usage: " << argv[1] << std::endl;
         return 1;
     }
 
     std::ifstream file(argv[1]);
 
     if(!file){
-        std::cout << "Error: cannot open file " << argv[1] << std::endl;
+        std::cerr << "Error: cannot open file " << argv[1] << std::endl;
         return 1;
     }
 
@@ -85,7 +92,7 @@ int main(int argc, char* argv[]){
         tasks.push_back(t);
     }
 
-    CFS_Scheduler sched;
+    CFS_Scheduler sched(tasks);
     sched.Scheduler();
 
 
