@@ -3,7 +3,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
-#include <map>
+#include "map.h"
 
 class Task {
 public:
@@ -25,17 +25,17 @@ private:
     unsigned int tick = 0;
     unsigned int min_vruntime = 0;
     unsigned int num_tasks = 0;
-    std::multimap<unsigned int, Task*> timeline;
+    Multimap<unsigned int, Task*> timeline;
     std::vector<Task*> tasks;
 };
 
 void CFS_Scheduler::Scheduler() {
-    while (!tasks.empty() || !timeline.empty()) {
+    while (!tasks.empty() || timeline.Size() > 0) {
         if (!tasks.empty()) {
             for (auto task = tasks.begin(); task != tasks.end(); ) {
                 Task* current_task = *task;
                 if (current_task->start_time == tick) {
-                    timeline.insert({current_task->vruntime, current_task});
+                    timeline.Insert(current_task->vruntime, current_task);
                     num_tasks++;
                     task = tasks.erase(task);
                 } else {
@@ -50,8 +50,7 @@ void CFS_Scheduler::Scheduler() {
             continue;
         }
 
-        auto it = timeline.begin();
-        Task* current_task = it->second;
+        Task* current_task = timeline.Get(timeline.Min());
 
         std::cout << tick << " [" << num_tasks << "]: " << current_task->identifier;
 
@@ -60,18 +59,18 @@ void CFS_Scheduler::Scheduler() {
 
         if (current_task->duration == 0) {
             std::cout << "*\n";
-            timeline.erase(it);
+            timeline.Remove(current_task->vruntime);
             delete current_task;
             num_tasks--;
         } else {
             std::cout << "\n";
-            timeline.erase(it);
+            timeline.Remove(current_task->vruntime);
             current_task->vruntime++;
-            timeline.insert({current_task->vruntime, current_task});
+            timeline.Insert(current_task->vruntime, current_task);
         }
 
-        if (!timeline.empty()) {
-            min_vruntime = timeline.begin()->first;
+        if (timeline.Size() > 0) {
+            min_vruntime = timeline.Min();
         }
     }
 }
