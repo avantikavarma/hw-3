@@ -5,67 +5,82 @@
 
 #include "map.h"
 
-struct Task {
+// min_vruntime should be updated to reflect the smallest vruntime among the currently running tasks. a
+// values should be sorted by A,B,C
+
+class Task {
+public:
     char identifier;
     unsigned int start_time;
     unsigned int duration;
     unsigned int vruntime;
+
+    Task(char identifier, unsigned int start_time, unsigned int duration){
+        identifier = identifier;
+        start_time = start_time;
+        duration = duration;
+        vruntime = 0;
+    }
 };
 
 class CFS_Scheduler {
-    public:
+public:
     void Scheduler();
 
-    CFS_Scheduler(std::vector<Task> input){
+    CFS_Scheduler(std::vector<Task*> input) {
         tasks = input;
     }
-
-    private:
+private:
     unsigned int tick = 0;
     unsigned int min_vruntime = 0;
-    Multimap<int, Task> timeline;
-    std::vector<Task> tasks;
-
+    unsigned int num_tasks = 0;
+    Multimap<unsigned int, Task*> timeline;
+    std::vector<Task*> tasks;
 
 };
 
 void CFS_Scheduler::Scheduler(){
-    while(!tasks.empty()){
-        for(auto task = tasks.begin(); task != tasks.end();){
-            auto start_time = task->start_time;
-            if(start_time == tick){
-                task->vruntime = min_vruntime;
-                timeline.Insert(task->vruntime, *task); 
-                task = tasks.erase(task);
-            } else {
-                task++;
+    while(!tasks.empty() || timeline.Size() > 0){
+        if(!tasks.empty()){
+            for(auto task = tasks.begin(); task!= tasks.end(); ){
+                auto current_task = *task;
+                if(current_task->start_time == tick) {
+                    timeline.Insert(current_task->vruntime, current_task);
+                    num_tasks++;
+                    task = tasks.erase(task);
+                } else {
+                    task++;
+                }
             }
         }
 
-        if(timeline.Size() == 0){
+        if(num_tasks == 0) {
             std::cout << tick << " [0]: _";
+            tick++;
+            continue;
         }
+        auto current_task = timeline.Get(timeline.Min());
 
-        if(timeline.Size() > 0){
-            auto current_task = timeline.Get(timeline.Min());
-            std::cout << tick <<" [" << timeline.Size() << "]: " << current_task.identifier;
-            auto current_key = timeline.Min();
-            timeline.Remove(current_task.vruntime);
-            current_task.duration--;
-            if(current_task.duration == 0){
+        while(current_task->vruntime  <= min_vruntime) {
+            current_task->duration--;
+
+            std::cout << tick <<" [" << num_tasks << "]: " << current_task->identifier; 
+        
+            if(current_task->duration == 0) {
                 std::cout << "*";
-                timeline.Remove(timeline.Min());
-            } else {
-                current_task.vruntime++;
+                timeline.Remove(current_task->vruntime);
+                delete current_task;
+                num_tasks--;
+                continue;
             }
-            timeline.Insert(current_task.vruntime, current_task);
+            std::cout << "\n";
 
-            min_vruntime = current_task.vruntime;
+            current_task->vruntime++;
+            timeline.Insert(current_task->vruntime, current_task);
+            min_vruntime = timeline.Min();
+            tick++;
         }
-        std::cout << '\n';
-        tick++;   
     }
-
 }
 
 int main(int argc, char* argv[]){
@@ -82,7 +97,7 @@ int main(int argc, char* argv[]){
     }
 
     // Use multimap to store tasks by start tim e
-    std::vector<Task> tasks;
+    std::vector<Task*> tasks;
   
     std::string line;
     while(std::getline(file, line)){
@@ -94,7 +109,7 @@ int main(int argc, char* argv[]){
         task >> identifier >> start_time >> duration_time;
 
         // Create task and add it to the map
-        Task t = {identifier, start_time, duration_time, 0}; // Set vruntime to 0 initially
+        Task *t = new Task{identifier, start_time, duration_time};
         tasks.push_back(t);
     }
 
