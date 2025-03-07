@@ -2,120 +2,104 @@
 #include <fstream>
 #include <sstream>
 #include <string>
-
+#include <vector>
+#include <algorithm>
 #include "map.h"
 
-// min_vruntime should be updated to reflect the smallest vruntime among the currently running tasks. a
-// values should be sorted by A,B,C
-
-class Task {
-public:
+struct Task {
     char identifier;
     unsigned int start_time;
     unsigned int duration;
     unsigned int vruntime;
 
-    Task(char identifier, unsigned int start_time, unsigned int duration){
-        identifier = identifier;
-        start_time = start_time;
-        duration = duration;
-        vruntime = 0;
+    // Define comparison operator for sorting
+    bool operator<(const Task& other) const {
+        return start_time < other.start_time;
     }
 };
 
 class CFS_Scheduler {
 public:
+    explicit CFS_Scheduler(std::vector<Task> input)
+        : tick(0), min_vruntime(0), timeline(), tasks(std::move(input)) {}
+
     void Scheduler();
 
-    CFS_Scheduler(std::vector<Task*> input) {
-        tasks = input;
-    }
 private:
-    unsigned int tick = 0;
-    unsigned int min_vruntime = 0;
-    unsigned int num_tasks = 0;
-    Multimap<unsigned int, Task*> timeline;
-    std::vector<Task*> tasks;
-
+    unsigned int tick;
+    unsigned int min_vruntime;
+    Multimap<int, Task> timeline;
+    std::vector<Task> tasks;
 };
 
-void CFS_Scheduler::Scheduler(){
-    while(!tasks.empty() || timeline.Size() > 0){
-        if(!tasks.empty()){
-            for(auto task = tasks.begin(); task!= tasks.end(); ){
-                auto current_task = *task;
-                if(current_task->start_time == tick) {
-                    timeline.Insert(current_task->vruntime, current_task);
-                    num_tasks++;
-                    task = tasks.erase(task);
-                } else {
-                    task++;
-                }
+
+void CFS_Scheduler::Scheduler() {
+    while (!tasks.empty() || timeline.Size() >= 0) {
+        // Add tasks to the timeline based on start time
+        if(tasks.front().start_time == tick) {
+            Task task = tasks.front();
+            task.vruntime = min_vruntime; // Initialize vruntime
+            timeline.Insert(task.vruntime, task); // Insert into multimap
+            tasks.erase(tasks.begin()); // Remove from task list
+        }
+
+        if (timeline.Size() == 0) {
+            std::cout << tick << " [0]: _\n";
+        } else {
+            // Get task with the smallest vruntime
+            int min_key = timeline.Min();
+            Task current_task = timeline.Get(min_key);
+
+            std::cout << tick << " [" << timeline.Size() << "]: " << current_task.identifier;
+
+            // Process task execution
+            current_task.duration--;
+
+            timeline.Remove(min_key); // Remove the old instance
+
+            if (current_task.duration == 0) {
+                std::cout << "*"; // Mark as finished
+            } else {
+                current_task.vruntime++;
+                timeline.Insert(current_task.vruntime, current_task); // Reinsert with updated vruntime
             }
+
+            min_vruntime = current_task.vruntime; // Update min vruntime
         }
 
-        if(num_tasks == 0) {
-            std::cout << tick << " [0]: _";
-            tick++;
-            continue;
-        }
-        auto current_task = timeline.Get(timeline.Min());
-
-        while(current_task->vruntime  <= min_vruntime) {
-            current_task->duration--;
-
-            std::cout << tick <<" [" << num_tasks << "]: " << current_task->identifier; 
-        
-            if(current_task->duration == 0) {
-                std::cout << "*";
-                timeline.Remove(current_task->vruntime);
-                delete current_task;
-                num_tasks--;
-                continue;
-            }
-            std::cout << "\n";
-
-            current_task->vruntime++;
-            timeline.Insert(current_task->vruntime, current_task);
-            min_vruntime = timeline.Min();
-            tick++;
-        }
+        std::cout << '\n';
+        tick++;
     }
 }
 
-int main(int argc, char* argv[]){
-    if(argc != 2){
-        std::cerr << "Usage: " << argv[0]  << "<task_file.dat>" << std::endl;
+int main(int argc, char* argv[]) {
+    if (argc != 2) {
+        std::cerr << "Usage: " << argv[0] << " <task_file.dat>\n";
         return 1;
     }
 
     std::ifstream file(argv[1]);
-
-    if(!file){
-        std::cerr << "Error: cannot open file " << argv[1] << std::endl;
+    if (!file) {
+        std::cerr << "Error: cannot open file " << argv[1] << '\n';
         return 1;
     }
 
-    // Use multimap to store tasks by start tim e
-    std::vector<Task*> tasks;
-  
+    std::vector<Task> tasks;
     std::string line;
-    while(std::getline(file, line)){
+    while (std::getline(file, line)) {
         std::istringstream task(line);
         char identifier;
-        unsigned int start_time;
-        unsigned int duration_time;
+        unsigned int start_time, duration_time;
 
         task >> identifier >> start_time >> duration_time;
-
-        // Create task and add it to the map
-        Task *t = new Task{identifier, start_time, duration_time};
-        tasks.push_back(t);
+        tasks.push_back({identifier, start_time, duration_time, 0}); // Initial vruntime = 0
     }
+
+    // Sort tasks by start_time
+    std::sort(tasks.begin(), tasks.end());
 
     CFS_Scheduler sched(tasks);
     sched.Scheduler();
-
 
     return 0;
 }
